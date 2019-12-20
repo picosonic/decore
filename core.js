@@ -65,6 +65,7 @@ var core={
     {
       console.log("STACK OVERFLOW");
       this.running=false;
+      return;
     }
 
     this.memory[STACK+this.sreg]=topush;
@@ -78,6 +79,7 @@ var core={
     {
       console.log("STACK UNDERFLOW");
       this.running=false;
+      return 0;
     }
 
     this.sreg++;
@@ -262,7 +264,8 @@ var core={
           break;
 
         default:
-          console.log("Unknown opcode 0x"+ci.toString(16));
+          console.log("Unknown opcode 0x"+this.ci.toString(16));
+          this.running=false;
           return;
           break;
       }
@@ -306,7 +309,7 @@ var core={
           break;
 
         default:
-          console.log("Unknown opcode 0x"+ci.toString(16));
+          console.log("Unknown opcode 0x"+this.ci.toString(16));
           this.running=false;
           return;
           break;
@@ -316,6 +319,8 @@ var core={
     if ((this.ci&0x1f)==0x10) // Branch instructions
     {
       this.addr=this.memory[this.pc++];
+      if (this.addr>=0x80) this.addr-=0x100;
+
       console.log("if ");
       switch ((this.ci&0xc0)>>6)
       {
@@ -355,6 +360,7 @@ var core={
       this.pushword(this.pc-1);
       this.push(this.flags|BFLAG);
       this.pc=this.memory[0xffee]|(this.memory[0xffff]<<8);
+      this.running=false;
       return;
     }
     else
@@ -390,10 +396,13 @@ var core={
     }
     else
     {
-      // Process opcode table
+      // Process from standard opcode table
       switch (this.cc)
       {
-
+        default:
+          console.log("Unknown opcode 0x"+this.ci.toString(16));
+          this.running=false;
+          break;
       }
     }
   },
@@ -410,7 +419,78 @@ function rafcallback(timestamp)
 
 function launchcore()
 {
+  var lp=0x2000;
+
   core.resetcore();
+
+  // Load test code
+  core.memory[lp++]=0xa9; // LDA #0x16
+  core.memory[lp++]=0x16; //
+
+  core.memory[lp++]=0x20; // JSR 0xFFEE
+  core.memory[lp++]=0xee; //
+  core.memory[lp++]=0xff; //
+
+  core.memory[lp++]=0xa9; // LDA #0x07
+  core.memory[lp++]=0x07; //
+
+  core.memory[lp++]=0x20; // JSR 0xFFEE
+  core.memory[lp++]=0xee; //
+  core.memory[lp++]=0xff; //
+
+  core.memory[lp++]=0xa9; // LDA #0x1F
+  core.memory[lp++]=0x1f; //
+
+  core.memory[lp++]=0x85; // STA #0x70
+  core.memory[lp++]=0x70; //
+
+  core.memory[lp++]=0xa9; // LDA #0x20
+  core.memory[lp++]=0x20; //
+
+  core.memory[lp++]=0x85; // STA 0x71
+  core.memory[lp++]=0x71; //
+
+  core.memory[lp++]=0xa0; // LDY 0x00
+  core.memory[lp++]=0x00; //
+
+  core.memory[lp++]=0xb1; // LDA (0x70),Y
+  core.memory[lp++]=0x70; //
+
+  core.memory[lp++]=0xf0; // BEQ 0x06
+  core.memory[lp++]=0x06; //
+
+  core.memory[lp++]=0x20; // JSR 0xFFE3
+  core.memory[lp++]=0xe3; //
+  core.memory[lp++]=0xff; //
+
+  core.memory[lp++]=0xc8; // INY
+
+  core.memory[lp++]=0xd0; // BNE 0xF6 (-10)
+  core.memory[lp++]=0xf6; //
+
+  core.memory[lp++]=0x60; // RTS
+
+  core.memory[lp++]=0x48; // H
+  core.memory[lp++]=0x65; // e
+  core.memory[lp++]=0x6c; // l
+  core.memory[lp++]=0x6c; // l
+  core.memory[lp++]=0x6f; // o
+  core.memory[lp++]=0x20; // " "
+  core.memory[lp++]=0x36; // 6
+  core.memory[lp++]=0x35; // 5
+  core.memory[lp++]=0x30; // 0
+  core.memory[lp++]=0x32; // 2
+  core.memory[lp++]=0x20; // " "
+  core.memory[lp++]=0x77; // w
+  core.memory[lp++]=0x6f; // o
+  core.memory[lp++]=0x72; // r
+  core.memory[lp++]=0x6c; // l
+  core.memory[lp++]=0x64; // d
+  core.memory[lp++]=0x21; // !
+  core.memory[lp++]=0x0d; // CR
+  core.memory[lp++]=0x00; // NULL
+
+  core.pc=0x2000;
   core.running=true;
   window.requestAnimationFrame(rafcallback);
 }
