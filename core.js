@@ -28,6 +28,11 @@ const XREG=0xffff+3; // X index
 const YREG=0xffff+4; // Y index
 const SREG=0xffff+5; // stack
 
+function debug(message)
+{
+//  console.log(message);
+}
+
 var core={
   // Is the core running?
   running:false,
@@ -62,7 +67,7 @@ var core={
   {
     if (this.memory[this.memory[SREG]]==0x01)
     {
-      console.log("STACK OVERFLOW");
+      debug("STACK OVERFLOW");
       this.running=false;
       return;
     }
@@ -76,7 +81,7 @@ var core={
   {
     if (this.memory[SREG]==0xff)
     {
-      console.log("STACK UNDERFLOW");
+      debug("STACK UNDERFLOW");
       this.running=false;
       return 0;
     }
@@ -178,95 +183,95 @@ var core={
       switch (this.ci)
       {
         case 0x08:
-          console.log("PHP"); // * Push flags onto stack
+          debug("PHP"); // * Push flags onto stack
           this.push(this.flags|0x30); // (0x30 from beebem)
           break;
 
         case 0x18: // * Clear CARRY flag
-          console.log("CLC");
+          debug("CLC");
           CLEARFLAG(CFLAG);
           break;
 
         case 0x28: // * Pull from stack to flags
-          console.log("PLP");
+          debug("PLP");
           this.flags=this.pop();
           break;
 
         case 0x38: // * Set CARRY flag
-          console.log("SEC");
+          debug("SEC");
           SETFLAG(CFLAG);
           break;
 
         case 0x48: // * Push A onto stack
-          console.log("PHA");
+          debug("PHA");
           this.push(this.memory[AREG]);
           break;
 
         case 0x58: // * Clear INTERRUPT (disable) flag (enable interrupts)
-          console.log("CLI");
+          debug("CLI");
           CLEARFLAG(IFLAG);
           break;
 
         case 0x68: // * Pull from stack to A
-          console.log("PLA");
+          debug("PLA");
           this.memory[AREG]=this.pop();
           this.update_flagsZN(this.memory[AREG]);
           break;
 
         case 0x78: // * Set INTERRUPT (disable) flag (disable interrupts)
-          console.log("SEI");
+          debug("SEI");
           SETFLAG(IFLAG);
           break;
 
         case 0x88: // * Decrement Y by 1
-          console.log("DEY");
+          debug("DEY");
           this.memory[YREG]--;
           this.update_flagsZN(this.memory[YREG]);
           break;
 
         case 0x98: // * Transfer Y to A
-          console.log("TYA");
+          debug("TYA");
           this.memory[AREG]=this.memory[YREG];
           this.update_flagsZN(this.memory[AREG]);
           break;
 
         case 0xa8: // * Transfer A to Y
-          console.log("TAY");
+          debug("TAY");
           this.memory[YREG]=this.memory[AREG];
           this.update_flagsZN(this.memory[YREG]);
           break;
 
         case 0xb8: // * Clear OVERFLOW flag
-          console.log("CLV");
+          debug("CLV");
           CLEARFLAG(VFLAG);
           break;
 
         case 0xc8: // * Increment Y by 1
-          console.log("INY");
+          debug("INY");
           this.memory[YREG]++;
           this.update_flagsZN(this.memory[YREG]);
           break;
 
         case 0xd8: // * Clear DECIMAL flag
-          console.log("CLD");
+          debug("CLD");
           CLEARFLAG(DFLAG);
           break;
 
         case 0xe8: // * Increment X by 1
-          console.log("INX");
+          debug("INX");
           this.memory[XREG]++;
           update_flagsZN(this.memory[XREG]);
           break;
 
         case 0xf8: // * Set BCD flag
-          console.log("SED");
+          debug("SED");
           SETFLAG(DFLAG);
           this.running=false;
           return; // TODO
           break;
 
         default:
-          console.log("Unknown opcode 0x"+this.ci.toString(16));
+          debug("Unknown opcode 0x"+this.ci.toString(16));
           this.running=false;
           return;
           break;
@@ -278,40 +283,40 @@ var core={
       switch (this.ci)
       {
         case 0x8a: // * Transfer X to A
-          console.log("TXA");
+          debug("TXA");
           this.memory[AREG]=this.memory[XREG];
           this.update_flagsZN(this.memory[AREG]);
           break;
 
         case 0x9a: // * Transfer X to stackpointer
-          console.log("TXS");
+          debug("TXS");
           this.memory[SREG]=this.memory[XREG];
           break;
 
         case 0xaa: // * Transfer A to X
-          console.log("TAX");
+          debug("TAX");
           this.memory[XREG]=this.memory[AREG];
           this.update_flagsZN(this.memory[XREG]);
           break;
 
         case 0xba: // * Transfer stackpointer to X
-          console.log("TSX");
+          debug("TSX");
           this.memory[XREG]=this.memory[SREG];
           this.update_flagsZN(this.memory[XREG]);
           break;
 
         case 0xca: // * Decrement X by 1
-          console.log("DEX");
+          debug("DEX");
           this.memory[XREG]--;
           this.update_flagsZN(this.memory[XREG]);
           break;
 
         case 0xea: // * No operation
-          console.log("NOP");
+          debug("NOP");
           break;
 
         default:
-          console.log("Unknown opcode 0x"+this.ci.toString(16));
+          debug("Unknown opcode 0x"+this.ci.toString(16));
           this.running=false;
           return;
           break;
@@ -323,41 +328,41 @@ var core={
       this.addr=this.memory[this.pc++];
       if (this.addr>=0x80) this.addr-=0x100;
 
-      console.log("if ");
+      debug("if ");
       switch ((this.ci&0xc0)>>6)
       {
         case 0x00: // * Branch on NEGATIVE (BMI/BPL)
-          console.log("NEG");
+          debug("NEG");
           if ((this.flags & NFLAG)==((this.ci&0x20)<<2)) this.pc+=this.addr;
           break;
 
         case 0x01: // * Branch on OVERFLOW (BVC/BVS)
-          console.log("OVR");
+          debug("OVR");
           if ((this.flags & VFLAG)==((this.ci&0x20)<<1)) this.pc+=this.addr;
           break;
 
         case 0x02: // * Branch on CARRY (BCC/BCS)
-          console.log("CRY");
+          debug("CRY");
           if ((this.flags & CFLAG)==((this.ci&0x20)>>5)) this.pc+=this.addr;
           break;
 
         case 0x03: // * Branch on ZERO (BEQ/BNE)
-          console.log("ZER");
+          debug("ZER");
           if ((this.flags & ZFLAG)==((this.ci&0x20)>>4)) this.pc+=this.addr;
           break;
 
         default:
-          console.log("Unknown branch 0x"+this.ci.toString(16));
+          debug("Unknown branch 0x"+this.ci.toString(16));
           this.running=false;
           return;
           break;
       }
-      console.log("="+((this.ci&0x20)>>5)+" then branch "+this.addr);
+      debug("="+((this.ci&0x20)>>5)+" then branch "+this.addr);
     }
     else
     if (this.ci==0x00) // * Simulate interrupt request IRQ
     {
-      console.log("BRK");
+      debug("BRK");
       this.pc++;
       this.pushword(this.pc-1);
       this.push(this.flags|BFLAG);
@@ -371,10 +376,10 @@ var core={
       this.addr=this.memory[this.pc++];
       this.addr=(this.memory[this.pc++]<<8)+this.addr;
 
-      console.log("JSR abs 0x"+this.addr.toString(16));
+      debug("JSR abs 0x"+this.addr.toString(16));
       if (this.addr>=0x8000)
       {
-        console.log(" ");
+        debug(" ");
         this.OSJump(this.addr);
       }
       else
@@ -386,14 +391,14 @@ var core={
     else
     if (this.ci==0x40) // * Return from interrupt
     {
-      console.log("RTI");
+      debug("RTI");
       this.flags=this.pop();
       this.pc=this.popword();
     }
     else
     if (this.ci==0x60) // * Return from subroutine
     {
-      console.log("RTS");
+      debug("RTS");
       this.pc=this.popword()+1;
     }
     else
@@ -431,7 +436,7 @@ var core={
               break;
 
             default:
-              console.log("Unknown A addressing mode 0x"+this.bbb.toString(16));
+              debug("Unknown A addressing mode 0x"+this.bbb.toString(16));
               this.running=false;
               return;
               break;
@@ -441,14 +446,14 @@ var core={
           switch (this.aaa)
           {
             case 0x01: // * Test bits in A with M
-              console.log("BIT");
+              debug("BIT");
               result=this.memory[AREG] & this.memory[src];
               if ((result&0x40)!=0x00) this.SETFLAG(VFLAG); else this.CLEARFLAG(VFLAG);
               this.update_flagsZN(result);
               break;
 
             case 0x02: // * Goto address absolute
-              console.log("JMP abs 0x"+this.addr.toString(16));
+              debug("JMP abs 0x"+this.addr.toString(16));
               if (this.addr>=0x8000)
               {
                 this.OSJump(this.addr);
@@ -460,7 +465,7 @@ var core={
               break;
 
             case 0x03: // * Goto address indirect
-              console.log("JMP ind (0x"+this.addr.toString(16)+")");
+              debug("JMP ind (0x"+this.addr.toString(16)+")");
               this.addr=this.memory[this.addr]|(this.memory[this.addr+1]<<8);
               if (this.addr>=0x8000)
               {
@@ -473,32 +478,32 @@ var core={
               break;
 
             case 0x04: // * Store Y in memory
-              console.log("STY");
+              debug("STY");
               this.memory[src]=this.memory[YREG];
               break;
 
             case 0x05: // * Load Y with memory
-              console.log("LDY");
+              debug("LDY");
               this.memory[YREG]=this.memory[src];
               this.update_flagsZN(this.memory[YREG]);
               break;
 
             case 0x06: // * Compare Y with memory
-              console.log("CPY");
+              debug("CPY");
               result=(this.memory[YREG]-this.memory[src]);
               if (this.memory[YREG]>=this.memory[src]) this.SETFLAG(CFLAG); else this.CLEARFLAG(CFLAG);
               this.update_flagsZN(result);
               break;
 
             case 0x07: // * Compare X with memory
-              console.log("CPX");
+              debug("CPX");
               result=(this.memory[XREG]-this.memory[src]);
               if (this.memory[XREG]>=this.memory[src]) this.SETFLAG(CFLAG); else this.CLEARFLAG(CFLAG);
               this.update_flagsZN(result);
               break;
 
             default:
-              console.log("Unknown opcode "+this.ci.toString(16)+" in table "+this.cc.toString(16));
+              debug("Unknown opcode "+this.ci.toString(16)+" in table "+this.cc.toString(16));
               this.running=false;
               return;
               break;
@@ -550,7 +555,7 @@ var core={
               break;
 
             default:
-              console.log("Unknown B addressing mode 0x"+this.bbb.toString(16));
+              debug("Unknown B addressing mode 0x"+this.bbb.toString(16));
               this.running=false;
               return;
               break;
@@ -560,54 +565,54 @@ var core={
           switch (this.aaa)
           {
             case 0x00: // * Bitwise-OR A with memory
-              console.log("ORA");
+              debug("ORA");
               this.running=false;
               return;
               break;
 
             case 0x01: // * Bitwise-AND A with memory
-              console.log("AND");
+              debug("AND");
               this.running=false;
               return;
               break;
 
             case 0x02: // * Bitwise-XOR A with memory
-              console.log("EOR");
+              debug("EOR");
               this.running=false;
               return;
               break;
 
             case 0x03: // * Add memory to A with carry
-              console.log("ADC");
+              debug("ADC");
               this.running=false;
               return;
               break;
 
             case 0x04: // * Store A in memory
-              console.log("STA");
+              debug("STA");
               this.memory[src]=this.memory[AREG];
               break;
 
             case 0x05: // * Load A with memory
-              console.log("LDA");
+              debug("LDA");
               this.memory[AREG]=this.memory[src];
               this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x06: // * Compare A with memory
-              console.log("CMP");
+              debug("CMP");
               this.running=false;
               return;
               break;
 
             case 0x07: // * Subtract memory from A with borrow
-              console.log("SBC");
+              debug("SBC");
               this.running=false;
               return;
               break;
 
             default:
-              console.log("Unknown opcode "+this.ci.toString(16)+" in table "+this.cc.toString(16));
+              debug("Unknown opcode "+this.ci.toString(16)+" in table "+this.cc.toString(16));
               this.running=false;
               return;
               break;
@@ -615,13 +620,13 @@ var core={
           break;
 
         case 0x02:
-console.log("TODO "+this.cc.toString(16));
+debug("TODO "+this.cc.toString(16));
 this.running=false;
 return;
           break;
 
         default:
-          console.log("Unknown opcode table 0x"+this.cc.toString(16)+" for instruction 0x"+this.ci.toString(16));
+          debug("Unknown opcode table 0x"+this.cc.toString(16)+" for instruction 0x"+this.ci.toString(16));
           this.running=false;
           return;
           break;
@@ -633,7 +638,8 @@ return;
 
 function rafcallback(timestamp)
 {
-  core.stepcore();
+  for (var i=0; i<100; i++)
+    core.stepcore();
 
   if (core.running)
     window.requestAnimationFrame(rafcallback);
