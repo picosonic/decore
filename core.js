@@ -131,7 +131,16 @@ var core={
 
   OSJump:function(addr)
   {
-    // TODO
+    switch (addr)
+    {
+      case 0xffe3:
+        document.write(String.fromCharCode(this.memory[AREG]));
+        break;
+
+      case 0xffee:
+        document.write(String.fromCharCode(this.memory[AREG]));
+        break;
+    }
   },
 
   // Fully reset the core state
@@ -334,7 +343,7 @@ var core={
 
         case 0x03: // * Branch on ZERO (BEQ/BNE)
           console.log("ZER");
-          if ((fthis.lags & ZFLAG)==((this.ci&0x20)>>4)) this.pc+=this.addr;
+          if ((this.flags & ZFLAG)==((this.ci&0x20)>>4)) this.pc+=this.addr;
           break;
 
         default:
@@ -397,7 +406,7 @@ var core={
       {
         case 0x00:
           // Process addressing mode
-          switch (bbb)
+          switch (this.bbb)
           {
             case 0x00: // #immediate
               src=this.pc++;
@@ -576,8 +585,7 @@ var core={
 
             case 0x04: // * Store A in memory
               console.log("STA");
-              this.running=false;
-              return;
+              this.memory[src]=this.memory[AREG];
               break;
 
             case 0x05: // * Load A with memory
