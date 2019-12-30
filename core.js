@@ -3,12 +3,6 @@ const CC=0x03;
 const BBB=0x1c;
 const AAA=0xe0;
 
-// Memory usage bitfield types
-const UNUSED=0x00
-const READ=0x01;
-const WRITE=0x02;
-const CODE=0x04;
-
 // CPU flags
 const CFLAG=0x01; // Carry
 const ZFLAG=0x02; // Zero
@@ -566,25 +560,25 @@ var core={
           {
             case 0x00: // * Bitwise-OR A with memory
               debug("ORA");
-              this.running=false;
-              return;
+              this.memory[AREG]|=this.memory[src];
+              this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x01: // * Bitwise-AND A with memory
               debug("AND");
-              this.running=false;
-              return;
+              this.memory[AREG]&=this.memory[src];
+              update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x02: // * Bitwise-XOR A with memory
               debug("EOR");
-              this.running=false;
-              return;
+              this.memory[AREG]^=this.memory[src];
+              update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x03: // * Add memory to A with carry
               debug("ADC");
-              this.running=false;
+              this.running=false; // TODO
               return;
               break;
 
@@ -601,13 +595,13 @@ var core={
 
             case 0x06: // * Compare A with memory
               debug("CMP");
-              this.running=false;
+              this.running=false; // TODO
               return;
               break;
 
             case 0x07: // * Subtract memory from A with borrow
               debug("SBC");
-              this.running=false;
+              this.running=false; // TODO
               return;
               break;
 
@@ -621,7 +615,7 @@ var core={
 
         case 0x02:
 debug("TODO "+this.cc.toString(16));
-this.running=false;
+this.running=false; // TODO
 return;
           break;
 
