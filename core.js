@@ -595,8 +595,14 @@ var core={
 
             case 0x06: // * Compare A with memory
               debug("CMP");
-              this.running=false; // TODO
-              return;
+              result=this.memory[AREG]-this.memory[src];
+
+              if (this.memory[AREG]>=this.memory[src])
+                this.SETFLAG(CFLAG);
+              else
+                this.CLEARFLAG(CFLAG);
+
+              update_flagsZN(result);
               break;
 
             case 0x07: // * Subtract memory from A with borrow
