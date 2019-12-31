@@ -567,13 +567,13 @@ var core={
             case 0x01: // * Bitwise-AND A with memory
               debug("AND");
               this.memory[AREG]&=this.memory[src];
-              update_flagsZN(this.memory[AREG]);
+              this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x02: // * Bitwise-XOR A with memory
               debug("EOR");
               this.memory[AREG]^=this.memory[src];
-              update_flagsZN(this.memory[AREG]);
+              this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x03: // * Add memory to A with carry
@@ -602,7 +602,7 @@ var core={
               else
                 this.CLEARFLAG(CFLAG);
 
-              update_flagsZN(result);
+              this.update_flagsZN(result);
               break;
 
             case 0x07: // * Subtract memory from A with borrow
@@ -620,9 +620,125 @@ var core={
           break;
 
         case 0x02:
-debug("TODO "+this.cc.toString(16));
-this.running=false; // TODO
-return;
+          // Process addressing mode
+          switch (this.bbb)
+          {
+            case 00: // #immediate
+              src=this.pc++;
+              break;
+
+            case 01: // zero page
+              src=this.memory[this.pc++];
+              break;
+
+            case 02: // accumulator
+              src=AREG;
+              break;
+
+            case 03: // absolute
+              src=this.memory[this.pc++];
+              src=(this.memory[this.pc++]<<8)+src;
+              break;
+
+            case 05: // zero page,X
+              src=this.memory[this.pc++]+this.memory[XREG];
+              break;
+
+            case 07: // absolute,X
+              src=this.memory[this.pc++];
+              src=(this.memory[this.pc++]<<8)+src;
+              src+=this.memory[XREG];
+              break;
+
+            default:
+              debug("Unknown C addressing mode 0x"+this.bbb.toString(16));
+              this.running=false;
+              return;
+              break;
+          }
+
+          // Process instruction
+          switch (this.aaa)
+          {
+            case 0x00: // * Arithmetic shift left
+              printf("ASL");
+              if ((this.memory[src]&0x80)==0x00)
+                this.CLEARFLAG(CFLAG);
+              else
+                this.SETFLAG(CFLAG);
+
+              this.memory[src]=(this.memory[src] << 1)&0xfe;
+              this.update_flagsZN(this.memory[src]);
+              break;
+
+            case 0x01: // * Rotate left
+              printf("ROL");
+              result=this.memory[src];
+              this.memory[src]=(((this.memory[src] << 1)&0xfe) + (this.flags&CFLAG));
+
+              if ((result&0x80)==0x00)
+                this.CLEARFLAG(CFLAG);
+              else
+                this.SETFLAG(CFLAG);
+
+              this.update_flagsZN(this.memory[src]);
+              break;
+
+            case 0x02: // * Logical shift right
+              printf("LSR");
+              this.CLEARFLAG(NFLAG);
+
+              if ((this.memory[src]&0x01)==0x00)
+                this.CLEARFLAG(CFLAG);
+              else
+                this.SETFLAG(CFLAG);
+
+              this.memory[src]=((this.memory[src]>>1)&0x7f);
+              if (this.memory[src]==0x00) this.SETFLAG(ZFLAG); else this.CLEARFLAG(ZFLAG);
+              break;
+
+            case 0x03: // * Rotate right
+              printf("ROR");
+              result=this.memory[src]&0x01;
+              this.memory[src]=((this.memory[src]>>1)&0x7f);
+
+              if ((this.flags&CFLAG)!=0x00)
+                this.memory[src]|=0x80;
+
+              this.flags|=result;
+
+              this.update_flagsZN(this.memory[src]);
+              break;
+
+            case 0x04: // * Store X in memory
+              printf("STX");
+              this.memory[src]=this.memory[XREG];
+              break;
+
+            case 0x05: // * Load X with memory
+              printf("LDX");
+              this.memory[XREG]=this.memory[src];
+              this.update_flagsZN(this.memory[XREG]);
+              break;
+
+            case 0x06: // * Decrement indexed memory by 1 (DEX/DEY)
+              printf("DEC");
+              this.memory[src]--;
+              this.update_flagsZN(this.memory[src]);
+              break;
+
+            case 0x07: // * Increment memory by 1
+              printf("INC");
+              this.memory[src]++;
+              this.update_flagsZN(this.memory[src]);
+              break;
+
+            default:
+              debug("Unknown opcode "+this.ci.toString(16)+" in table "+this.cc.toString(16));
+              this.running=false;
+              return;
+              break;
+          }
           break;
 
         default:
