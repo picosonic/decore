@@ -112,9 +112,9 @@ var core={
   // Update Z V N flags
   update_flagsZVN:function(value)
   {
-    if (value==0x00) this.SETFLAG(ZFLAG); else this.CLEARFLAG(ZFLAG);
+    this.update_flagsZN(value);
+
     if ((value&0x40)!=0) this.SETFLAG(VFLAG); else this.CLEARFLAG(VFLAG);
-    if ((value&0x80)!=0) this.SETFLAG(NFLAG); else this.CLEARFLAG(NFLAG);
   },
 
   // Convert from BCD
@@ -176,23 +176,23 @@ var core={
     {
       switch (this.ci)
       {
-        case 0x08:
-          debug("PHP"); // * Push flags onto stack
+        case 0x08: // * Push flags onto stack
+          debug("PHP");
           this.push(this.flags|0x30); // (0x30 from beebem)
           break;
 
         case 0x18: // * Clear CARRY flag
-          debug("CLC");
+          debug("CLC"); // C
           CLEARFLAG(CFLAG);
           break;
 
         case 0x28: // * Pull from stack to flags
-          debug("PLP");
+          debug("PLP"); // ALL
           this.flags=this.pop();
           break;
 
         case 0x38: // * Set CARRY flag
-          debug("SEC");
+          debug("SEC"); // C
           SETFLAG(CFLAG);
           break;
 
@@ -202,7 +202,7 @@ var core={
           break;
 
         case 0x58: // * Clear INTERRUPT (disable) flag (enable interrupts)
-          debug("CLI");
+          debug("CLI"); // I
           CLEARFLAG(IFLAG);
           break;
 
@@ -213,24 +213,24 @@ var core={
           break;
 
         case 0x78: // * Set INTERRUPT (disable) flag (disable interrupts)
-          debug("SEI");
+          debug("SEI"); // I
           SETFLAG(IFLAG);
           break;
 
         case 0x88: // * Decrement Y by 1
-          debug("DEY");
+          debug("DEY"); // N Z
           this.memory[YREG]--;
           this.update_flagsZN(this.memory[YREG]);
           break;
 
         case 0x98: // * Transfer Y to A
-          debug("TYA");
+          debug("TYA"); // N Z
           this.memory[AREG]=this.memory[YREG];
           this.update_flagsZN(this.memory[AREG]);
           break;
 
         case 0xa8: // * Transfer A to Y
-          debug("TAY");
+          debug("TAY"); // N Z
           this.memory[YREG]=this.memory[AREG];
           this.update_flagsZN(this.memory[YREG]);
           break;
@@ -241,27 +241,25 @@ var core={
           break;
 
         case 0xc8: // * Increment Y by 1
-          debug("INY");
+          debug("INY"); // N Z
           this.memory[YREG]++;
           this.update_flagsZN(this.memory[YREG]);
           break;
 
         case 0xd8: // * Clear DECIMAL flag
-          debug("CLD");
+          debug("CLD"); // D
           CLEARFLAG(DFLAG);
           break;
 
         case 0xe8: // * Increment X by 1
-          debug("INX");
+          debug("INX"); // N Z
           this.memory[XREG]++;
           update_flagsZN(this.memory[XREG]);
           break;
 
         case 0xf8: // * Set BCD flag
-          debug("SED");
+          debug("SED"); // D
           SETFLAG(DFLAG);
-          this.running=false;
-          return; // TODO
           break;
 
         default:
@@ -277,7 +275,7 @@ var core={
       switch (this.ci)
       {
         case 0x8a: // * Transfer X to A
-          debug("TXA");
+          debug("TXA"); // N Z
           this.memory[AREG]=this.memory[XREG];
           this.update_flagsZN(this.memory[AREG]);
           break;
@@ -288,7 +286,7 @@ var core={
           break;
 
         case 0xaa: // * Transfer A to X
-          debug("TAX");
+          debug("TAX"); // N Z
           this.memory[XREG]=this.memory[AREG];
           this.update_flagsZN(this.memory[XREG]);
           break;
@@ -300,7 +298,7 @@ var core={
           break;
 
         case 0xca: // * Decrement X by 1
-          debug("DEX");
+          debug("DEX"); // N Z
           this.memory[XREG]--;
           this.update_flagsZN(this.memory[XREG]);
           break;
@@ -356,7 +354,7 @@ var core={
     else
     if (this.ci==0x00) // * Simulate interrupt request IRQ
     {
-      debug("BRK");
+      debug("BRK"); // B
       this.pc++;
       this.pushword(this.pc-1);
       this.push(this.flags|BFLAG);
@@ -385,7 +383,7 @@ var core={
     else
     if (this.ci==0x40) // * Return from interrupt
     {
-      debug("RTI");
+      debug("RTI"); // ALL
       this.flags=this.pop();
       this.pc=this.popword();
     }
@@ -440,7 +438,7 @@ var core={
           switch (this.aaa)
           {
             case 0x01: // * Test bits in A with M
-              debug("BIT");
+              debug("BIT"); // N V Z
               result=this.memory[AREG] & this.memory[src];
               if ((result&0x40)!=0x00) this.SETFLAG(VFLAG); else this.CLEARFLAG(VFLAG);
               this.update_flagsZN(result);
@@ -477,20 +475,20 @@ var core={
               break;
 
             case 0x05: // * Load Y with memory
-              debug("LDY");
+              debug("LDY"); // N Z
               this.memory[YREG]=this.memory[src];
               this.update_flagsZN(this.memory[YREG]);
               break;
 
             case 0x06: // * Compare Y with memory
-              debug("CPY");
+              debug("CPY"); // N Z C
               result=(this.memory[YREG]-this.memory[src]);
               if (this.memory[YREG]>=this.memory[src]) this.SETFLAG(CFLAG); else this.CLEARFLAG(CFLAG);
               this.update_flagsZN(result);
               break;
 
             case 0x07: // * Compare X with memory
-              debug("CPX");
+              debug("CPX"); // N Z C
               result=(this.memory[XREG]-this.memory[src]);
               if (this.memory[XREG]>=this.memory[src]) this.SETFLAG(CFLAG); else this.CLEARFLAG(CFLAG);
               this.update_flagsZN(result);
@@ -559,27 +557,65 @@ var core={
           switch (this.aaa)
           {
             case 0x00: // * Bitwise-OR A with memory
-              debug("ORA");
+              debug("ORA"); // N Z
               this.memory[AREG]|=this.memory[src];
               this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x01: // * Bitwise-AND A with memory
-              debug("AND");
+              debug("AND"); // N Z
               this.memory[AREG]&=this.memory[src];
               this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x02: // * Bitwise-XOR A with memory
-              debug("EOR");
+              debug("EOR"); // N Z
               this.memory[AREG]^=this.memory[src];
               this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x03: // * Add memory to A with carry
-              debug("ADC");
-              this.running=false; // TODO
-              return;
+              debug("ADC"); // N V Z C
+              result=this.memory[AREG]+this.memory[src]+(this.flags&CFLAG);
+
+              // Determine if overflow has occurred
+              if ((this.memory[AREG]&0x80)!=(result&0x80))
+                this.SETFLAG(VFLAG);
+              else
+                this.CLEARFLAG(VFLAG);
+
+              // Determine if result is negative
+              if ((this.memory[AREG]&0x80)==0x00)
+                this.CLEARFLAG(NFLAG);
+              else
+                this.SETFLAG(NFLAG);
+
+              // Determine if result is zero
+              if (result==0x00)
+                this.SETFLAG(ZFLAG);
+              else
+                this.CLEARFLAG(ZFLAG);
+
+              // Deterime if carry needed
+              if ((this.flags&DFLAG)==0x00)
+              {
+                // Set carry flag
+                if (result>255)
+                  this.SETFLAG(CFLAG);
+                else
+                  this.CLEARFLAG(CFLAG);
+              }
+              else
+              {
+                result=this.bcd(this.memory[AREG])+this.bcd(this.memory[src])+(this.flags&CFLAG);
+
+                if (result>99)
+                  this.SETFLAG(CFLAG);
+                else
+                  this.CLEARFLAG(CFLAG);
+              }
+
+              this.memory[AREG]=result&0xff;
               break;
 
             case 0x04: // * Store A in memory
@@ -588,13 +624,13 @@ var core={
               break;
 
             case 0x05: // * Load A with memory
-              debug("LDA");
+              debug("LDA"); // N Z
               this.memory[AREG]=this.memory[src];
               this.update_flagsZN(this.memory[AREG]);
               break;
 
             case 0x06: // * Compare A with memory
-              debug("CMP");
+              debug("CMP"); // N Z C
               result=this.memory[AREG]-this.memory[src];
 
               if (this.memory[AREG]>=this.memory[src])
@@ -606,9 +642,32 @@ var core={
               break;
 
             case 0x07: // * Subtract memory from A with borrow
-              debug("SBC");
-              this.running=false; // TODO
-              return;
+              debug("SBC"); // N V Z C
+              if ((this.flags&DFLAG)==0x00)
+              {
+                result=this.memory[AREG]-this.memory[src]-(1-(this.flags&CFLAG));
+                if ((result>127) || (result<-128))
+                  this.SETFLAG(VFLAG);
+                else
+                  this.CLEARFLAG(VFLAG);
+              }
+              else
+              {
+                result=this.bcd(this.memory[AREG])-this.bcd(this.memory[src])-(1-(this.flags&CFLAG));
+                if ((result>99) || (result<0))
+                  this.SETFLAG(VFLAG);
+                else
+                  this.CLEARFLAG(VFLAG);
+              }
+
+              if (result>=0)
+                this.SETFLAG(CFLAG);
+              else
+                this.CLEARFLAG(CFLAG);
+
+              this.memory[AREG]=result&0xff;
+
+              this.update_flagsZN(this.memory[AREG]);
               break;
 
             default:
@@ -661,7 +720,7 @@ var core={
           switch (this.aaa)
           {
             case 0x00: // * Arithmetic shift left
-              printf("ASL");
+              printf("ASL"); // N Z C
               if ((this.memory[src]&0x80)==0x00)
                 this.CLEARFLAG(CFLAG);
               else
@@ -672,7 +731,7 @@ var core={
               break;
 
             case 0x01: // * Rotate left
-              printf("ROL");
+              printf("ROL"); // N Z C
               result=this.memory[src];
               this.memory[src]=(((this.memory[src] << 1)&0xfe) + (this.flags&CFLAG));
 
@@ -685,7 +744,7 @@ var core={
               break;
 
             case 0x02: // * Logical shift right
-              printf("LSR");
+              printf("LSR"); // N Z C
               this.CLEARFLAG(NFLAG);
 
               if ((this.memory[src]&0x01)==0x00)
@@ -698,7 +757,7 @@ var core={
               break;
 
             case 0x03: // * Rotate right
-              printf("ROR");
+              printf("ROR"); // N Z C
               result=this.memory[src]&0x01;
               this.memory[src]=((this.memory[src]>>1)&0x7f);
 
@@ -716,19 +775,19 @@ var core={
               break;
 
             case 0x05: // * Load X with memory
-              printf("LDX");
+              printf("LDX"); // N Z
               this.memory[XREG]=this.memory[src];
               this.update_flagsZN(this.memory[XREG]);
               break;
 
             case 0x06: // * Decrement indexed memory by 1 (DEX/DEY)
-              printf("DEC");
+              printf("DEC"); // N Z
               this.memory[src]--;
               this.update_flagsZN(this.memory[src]);
               break;
 
             case 0x07: // * Increment memory by 1
-              printf("INC");
+              printf("INC"); // N Z
               this.memory[src]++;
               this.update_flagsZN(this.memory[src]);
               break;
