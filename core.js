@@ -20,7 +20,7 @@ const STACK=0x0100;
 const AREG=0xffff+2; // accumulator
 const XREG=0xffff+3; // X index
 const YREG=0xffff+4; // Y index
-const SREG=0xffff+5; // stack
+const SREG=0xffff+5; // stack pointer
 
 function debug(message)
 {
@@ -37,7 +37,7 @@ var core={
   // Program counter
   pc:0,
 
-  // CPU flags
+  // CPU flags (status register)
   flags:0,
 
   ci:0,
@@ -106,7 +106,7 @@ var core={
   update_flagsZN:function(value)
   {
     if (value==0x00) this.SETFLAG(ZFLAG); else this.CLEARFLAG(ZFLAG);
-    if ((value&0x80)!=0) this.SETFLAG(NFLAG); else this.CLEARFLAG(NFLAG);
+    if (((value&0x80)!=0) || (value<0)) this.SETFLAG(NFLAG); else this.CLEARFLAG(NFLAG);
   },
 
   // Update Z V N flags
@@ -355,10 +355,15 @@ var core={
     if (this.ci==0x00) // * Simulate interrupt request IRQ
     {
       debug("BRK"); // B
-      this.pc++;
-      this.pushword(this.pc-1);
-      this.push(this.flags|BFLAG);
-      this.pc=this.memory[0xffee]|(this.memory[0xffff]<<8);
+      this.SETFLAG(BFLAG);
+
+      // Save program counter and status register
+      this.pushword(this.pc);
+      this.push(this.flags);
+
+      // Jump to loction stored at &FFFE
+      this.pc=this.memory[0xfffe]|(this.memory[0xffff]<<8);
+
       this.running=false;
       return;
     }
@@ -482,14 +487,14 @@ var core={
 
             case 0x06: // * Compare Y with memory
               debug("CPY"); // N Z C
-              result=(this.memory[YREG]-this.memory[src]);
+              result=this.memory[YREG]-this.memory[src];
               if (this.memory[YREG]>=this.memory[src]) this.SETFLAG(CFLAG); else this.CLEARFLAG(CFLAG);
               this.update_flagsZN(result);
               break;
 
             case 0x07: // * Compare X with memory
               debug("CPX"); // N Z C
-              result=(this.memory[XREG]-this.memory[src]);
+              result=this.memory[XREG]-this.memory[src];
               if (this.memory[XREG]>=this.memory[src]) this.SETFLAG(CFLAG); else this.CLEARFLAG(CFLAG);
               this.update_flagsZN(result);
               break;
@@ -633,6 +638,7 @@ var core={
               debug("CMP"); // N Z C
               result=this.memory[AREG]-this.memory[src];
 
+              // Determine carry
               if (this.memory[AREG]>=this.memory[src])
                 this.SETFLAG(CFLAG);
               else
@@ -721,12 +727,16 @@ var core={
           {
             case 0x00: // * Arithmetic shift left
               printf("ASL"); // N Z C
+
+              // Place top bit in carry flag
               if ((this.memory[src]&0x80)==0x00)
                 this.CLEARFLAG(CFLAG);
               else
                 this.SETFLAG(CFLAG);
 
+              // Shift left (i.e. *2), then clear bottom bit
               this.memory[src]=(this.memory[src] << 1)&0xfe;
+
               this.update_flagsZN(this.memory[src]);
               break;
 
@@ -747,12 +757,15 @@ var core={
               printf("LSR"); // N Z C
               this.CLEARFLAG(NFLAG);
 
+              // Place bottom bit in carry
               if ((this.memory[src]&0x01)==0x00)
                 this.CLEARFLAG(CFLAG);
               else
                 this.SETFLAG(CFLAG);
 
+              // Divide by 2
               this.memory[src]=((this.memory[src]>>1)&0x7f);
+
               if (this.memory[src]==0x00) this.SETFLAG(ZFLAG); else this.CLEARFLAG(ZFLAG);
               break;
 
