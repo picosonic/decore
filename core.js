@@ -145,16 +145,21 @@ var core={
   // Fully reset the core state
   resetcore:function()
   {
+    // Clear memory
+    for (var i=0; i<this.memory.length; i++)
+      this.memory[i]=0;
+
+    // Set program counter
     this.pc=0;
+
+    // Set CPU registers
     this.memory[AREG]=0;
     this.memory[XREG]=0;
     this.memory[YREG]=0;
     this.memory[SREG]=0xff;
-    this.flags=IFLAG;
 
-    // Clear memory
-    for (var i=0; i<this.memory.length; i++)
-      this.memory[i]=0;
+    // Set default flag state
+    this.flags=IFLAG;
   },
 
   // Step a single instruction
