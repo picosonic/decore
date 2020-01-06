@@ -59,6 +59,9 @@ var core={
   // Last time we ran code (in milliseconds)
   lasttime:0,
 
+  // Number of clock cycles remaining during this execution run
+  clocks:0,
+
   // Memory
   memory:new Uint8Array(0xffff+1+4+1),
 
@@ -199,6 +202,9 @@ var core={
 
     // Fetch current instruction
     this.ci=this.memory[this.pc];
+
+    // Reduce remaining clock cycles
+    this.clocks-=cycles[this.ci]||0;
 
     // Move program counter on
     this.pc=(this.pc+1)&0xffff;
@@ -870,10 +876,10 @@ function rafcallback(timestamp)
     // Determine time since last call
     var delta=timestamp-core.lasttime;
 
-    // Calculate the number of cycle we can execute (assuming 2 MHz)
-    var cycles=Math.floor(delta*1000*2);
+    // Calculate the number of clock cycles we can execute (assuming 2 MHz)
+    core.clocks=Math.floor(delta*1000*2);
 
-    for (var i=0; ((core.running) && (i<cycles)); i++)
+    while ((core.running) && (core.clocks>0))
       core.stepcore();
   }
 
