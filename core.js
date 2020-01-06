@@ -31,6 +31,9 @@ var core={
   // Is the core running?
   running:false,
 
+  // Last time we ran code (in milliseconds)
+  lasttime:0,
+
   // Memory
   memory:new Uint8Array(0xffff+1+4+1),
 
@@ -165,6 +168,10 @@ var core={
   // Step a single instruction
   stepcore:function()
   {
+    // Do nothing if core not running
+    if (this.running==false)
+      return;
+
     // Fetch current instruction
     this.ci=this.memory[this.pc];
 
@@ -829,11 +836,26 @@ var core={
 
 };
 
+// Request animation frame callback
 function rafcallback(timestamp)
 {
-  for (var i=0; i<100; i++)
-    core.stepcore();
+  // If this is not the first frame then process opcodes
+  if (core.lasttime>0)
+  {
+    // Determine time since last call
+    var delta=timestamp-core.lasttime;
 
+    // Calculate the number of cycle we can execute (assuming 2 MHz)
+    var cycles=(Math.floor(delta)*1000)*2;
+
+    for (var i=0; ((core.running) && (i<cycles)); i++)
+      core.stepcore();
+  }
+
+  // Remember when we were last called
+  core.lasttime=timestamp;
+
+  // Request we are called on the next frame, but only if still running
   if (core.running)
     window.requestAnimationFrame(rafcallback);
 }
@@ -862,7 +884,7 @@ function launchcore()
   core.memory[lp++]=0xa9; // LDA #0x1F
   core.memory[lp++]=0x1f; //
 
-  core.memory[lp++]=0x85; // STA #0x70
+  core.memory[lp++]=0x85; // STA 0x70
   core.memory[lp++]=0x70; //
 
   core.memory[lp++]=0xa9; // LDA #0x20
