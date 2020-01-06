@@ -67,6 +67,7 @@ var core={
 
   // Program counter
   pc:0,
+  oldpc:0,
 
   // CPU flags (status register)
   flags:0,
@@ -205,6 +206,9 @@ var core={
 
     // Reduce remaining clock cycles
     this.clocks-=cycles[this.ci]||0;
+
+    // Store old value of program counter for page changes
+    this.oldpc=this.pc;
 
     // Move program counter on
     this.pc=(this.pc+1)&0xffff;
@@ -368,22 +372,42 @@ var core={
       {
         case 0x00: // * Branch on NEGATIVE (BMI/BPL)
           debug("NEG");
-          if ((this.flags & NFLAG)==((this.ci&0x20)<<2)) this.pc+=this.addr;
+          if ((this.flags & NFLAG)==((this.ci&0x20)<<2))
+          {
+            this.clocks--;
+            this.pc+=this.addr;
+            if ((this.pc&0xff00) != ((this.oldpc+2)&0xff00)) this.clocks--;
+          }
           break;
 
         case 0x01: // * Branch on OVERFLOW (BVC/BVS)
           debug("OVR");
-          if ((this.flags & VFLAG)==((this.ci&0x20)<<1)) this.pc+=this.addr;
+          if ((this.flags & VFLAG)==((this.ci&0x20)<<1))
+          {
+            this.clocks--;
+            this.pc+=this.addr;
+            if ((this.pc&0xff00) != ((this.oldpc+2)&0xff00)) this.clocks--;
+          }
           break;
 
         case 0x02: // * Branch on CARRY (BCC/BCS)
           debug("CRY");
-          if ((this.flags & CFLAG)==((this.ci&0x20)>>5)) this.pc+=this.addr;
+          if ((this.flags & CFLAG)==((this.ci&0x20)>>5))
+          {
+            this.clocks--;
+            this.pc+=this.addr;
+            if ((this.pc&0xff00) != ((this.oldpc+2)&0xff00)) this.clocks--;
+          }
           break;
 
         case 0x03: // * Branch on ZERO (BEQ/BNE)
           debug("ZER");
-          if ((this.flags & ZFLAG)==((this.ci&0x20)>>4)) this.pc+=this.addr;
+          if ((this.flags & ZFLAG)==((this.ci&0x20)>>4))
+          {
+            this.clocks--;
+            this.pc+=this.addr;
+            if ((this.pc&0xff00) != ((this.oldpc+2)&0xff00)) this.clocks--;
+          }
           break;
 
         default:
