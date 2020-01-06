@@ -27,6 +27,31 @@ function debug(message)
 //  console.log(message);
 }
 
+// Opcode clock cycles
+// +1 if page boundary crossed
+//
+// +1 if branch on same page
+// +2 if branch to different page
+var cycles=[
+// 00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f
+   7 , 6 ,   ,   ,   , 3 , 5 ,   , 3 , 2 , 2 ,   ,   , 4 , 6 ,    , // 00
+   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 10
+   6 , 6 ,   ,   , 3 , 3 , 5 ,   , 4 , 2 , 2 ,   , 4 , 4 , 6 ,    , // 20
+   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 30
+   6 , 6 ,   ,   ,   , 3 , 5 ,   , 3 , 2 , 2 ,   , 3 , 4 , 6 ,    , // 40
+   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 50
+   6 , 6 ,   ,   ,   , 3 , 5 ,   , 4 , 2 , 2 ,   , 5 , 4 , 6 ,    , // 60
+   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 70
+     , 6 ,   ,   , 3 , 3 , 3 ,   , 2 ,   , 2 ,   , 4 , 4 , 4 ,    , // 80
+   2 , 6 ,   ,   , 4 , 4 , 4 ,   , 2 , 5 , 2 ,   ,   , 5 ,   ,    , // 90
+   2 , 6 , 2 ,   , 3 , 3 , 3 ,   , 2 , 2 , 2 ,   , 4 , 4 , 4 ,    , // a0
+   2 , 5 ,   ,   , 4 , 4 , 4 ,   , 2 , 4 , 2 ,   , 4 , 4 , 4 ,    , // b0
+   2 , 6 ,   ,   , 3 , 3 , 5 ,   , 2 , 2 , 2 ,   , 4 , 4 , 6 ,    , // c0
+   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // d0
+   2 , 6 ,   ,   , 3 , 3 , 5 ,   , 2 , 2 , 2 ,   , 4 , 4 , 6 ,    , // e0
+   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // f0
+];
+
 var core={
   // Is the core running?
   running:false,
@@ -846,7 +871,7 @@ function rafcallback(timestamp)
     var delta=timestamp-core.lasttime;
 
     // Calculate the number of cycle we can execute (assuming 2 MHz)
-    var cycles=(Math.floor(delta)*1000)*2;
+    var cycles=Math.floor(delta*1000*2);
 
     for (var i=0; ((core.running) && (i<cycles)); i++)
       core.stepcore();
