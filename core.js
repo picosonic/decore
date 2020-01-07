@@ -578,41 +578,41 @@ var core={
           // Process addressing mode
           switch (this.bbb)
           {
-            case 00: // (zero page,X) = indexed indirect
+            case 0: // (zero page,X) = indexed indirect
               src=this.memory[this.pc++];
               src=this.memory[src+this.memory[XREG]];
               break;
 
-            case 01: // zero page
+            case 1: // zero page
               src=this.memory[this.pc++];
               break;
 
-            case 02: // #immediate
+            case 2: // #immediate
               src=this.pc++;
               break;
 
-            case 03: // absolute
+            case 3: // absolute
               src=this.memory[this.pc++];
               src=(this.memory[this.pc++]<<8)+src;
               break;
 
-            case 04: // (zero page),Y = indirect indexed
+            case 4: // (zero page),Y = indirect indexed
               src=this.memory[this.pc++];
               src=(this.memory[src+1]<<8)+this.memory[src];
               src+=this.memory[YREG];
               break;
 
-            case 05: // zero page,X
+            case 5: // zero page,X
               src=this.memory[this.pc++]+this.memory[XREG];
               break;
 
-            case 06: // absolute,Y
+            case 6: // absolute,Y
               src=this.memory[this.pc++];
               src=(this.memory[this.pc++]<<8)+src;
               src+=this.memory[YREG];
               break;
 
-            case 07: // absolute,X
+            case 7: // absolute,X
               src=this.memory[this.pc++];
               src=(this.memory[this.pc++]<<8)+src;
               src+=this.memory[XREG];
@@ -755,28 +755,28 @@ var core={
           // Process addressing mode
           switch (this.bbb)
           {
-            case 00: // #immediate
+            case 0: // #immediate
               src=this.pc++;
               break;
 
-            case 01: // zero page
+            case 1: // zero page
               src=this.memory[this.pc++];
               break;
 
-            case 02: // accumulator
+            case 2: // accumulator
               src=AREG;
               break;
 
-            case 03: // absolute
+            case 3: // absolute
               src=this.memory[this.pc++];
               src=(this.memory[this.pc++]<<8)+src;
               break;
 
-            case 05: // zero page,X
+            case 5: // zero page,X
               src=this.memory[this.pc++]+this.memory[XREG];
               break;
 
-            case 07: // absolute,X
+            case 7: // absolute,X
               src=this.memory[this.pc++];
               src=(this.memory[this.pc++]<<8)+src;
               src+=this.memory[XREG];
