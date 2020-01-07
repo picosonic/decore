@@ -62,7 +62,7 @@ var core={
   // Number of clock cycles remaining during this execution run
   clocks:0,
 
-  // Memory
+  // Memory plus registers
   mem:new Uint8Array(0xffff+1+4+1),
 
   // Program counter
@@ -164,11 +164,18 @@ var core={
   {
     switch (addr)
     {
-      case 0xffe3:
-        document.write(String.fromCharCode(this.mem[AREG]));
+      case 0xffe3: // OSASCI
+        if (this.mem[AREG]==0x0d)
+          document.write("<br/>");
+        else
+          document.write(String.fromCharCode(this.mem[AREG]));
         break;
 
-      case 0xffee:
+      case 0xffe7: // OSNEWL
+        document.write("<br/>");
+        break;
+
+      case 0xffee: // OSWRCH
         document.write(String.fromCharCode(this.mem[AREG]));
         break;
     }
