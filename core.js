@@ -473,6 +473,18 @@ var core={
       this.pc=this.popword()+1;
     }
     else
+    if ((this.ci==0x80) || // * Uncaught illegal instructions
+        (this.ci==0x89) ||
+        (this.ci==0x9e) ||
+        (((this.ci&0x0f)==0x02) && (this.ci!=0xa2)) ||
+        (((this.ci&0x0f)==0x0c) && ((this.ci&0x10)!=0) && (this.ci!=0xbc)) ||
+        (((this.ci&0x0f)==0x04) && ((this.ci>>4)<0x8) && (this.ci!=0x24)) ||
+        (((this.ci&0x0f)==0x04) && ((this.ci>>4)>0xc) && ((this.ci&0x10)!=0)))
+    {
+      debug("Illegal opcode 0x"+this.ci.toString(16));
+      this.running=false;
+    }
+    else
     {
       var src;
       var result;
