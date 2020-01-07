@@ -230,7 +230,7 @@ var core={
 
         case 0x18: // * Clear CARRY flag
           debug("CLC"); // C
-          CLEARFLAG(CFLAG);
+          this.CLEARFLAG(CFLAG);
           break;
 
         case 0x28: // * Pull from stack to flags
@@ -240,7 +240,7 @@ var core={
 
         case 0x38: // * Set CARRY flag
           debug("SEC"); // C
-          SETFLAG(CFLAG);
+          this.SETFLAG(CFLAG);
           break;
 
         case 0x48: // * Push A onto stack
@@ -250,7 +250,7 @@ var core={
 
         case 0x58: // * Clear INTERRUPT (disable) flag (enable interrupts)
           debug("CLI"); // I
-          CLEARFLAG(IFLAG);
+          this.CLEARFLAG(IFLAG);
           break;
 
         case 0x68: // * Pull from stack to A
@@ -261,7 +261,7 @@ var core={
 
         case 0x78: // * Set INTERRUPT (disable) flag (disable interrupts)
           debug("SEI"); // I
-          SETFLAG(IFLAG);
+          this.SETFLAG(IFLAG);
           break;
 
         case 0x88: // * Decrement Y by 1
@@ -284,7 +284,7 @@ var core={
 
         case 0xb8: // * Clear OVERFLOW flag
           debug("CLV");
-          CLEARFLAG(VFLAG);
+          this.CLEARFLAG(VFLAG);
           break;
 
         case 0xc8: // * Increment Y by 1
@@ -295,18 +295,18 @@ var core={
 
         case 0xd8: // * Clear DECIMAL flag
           debug("CLD"); // D
-          CLEARFLAG(DFLAG);
+          this.CLEARFLAG(DFLAG);
           break;
 
         case 0xe8: // * Increment X by 1
           debug("INX"); // N Z
           this.memory[XREG]++;
-          update_flagsZN(this.memory[XREG]);
+          this.update_flagsZN(this.memory[XREG]);
           break;
 
         case 0xf8: // * Set BCD flag
           debug("SED"); // D
-          SETFLAG(DFLAG);
+          this.SETFLAG(DFLAG);
           break;
 
         default:
@@ -793,7 +793,7 @@ var core={
           switch (this.aaa)
           {
             case 0x00: // * Arithmetic shift left
-              printf("ASL"); // N Z C
+              debug("ASL"); // N Z C
 
               // Place top bit in carry flag
               if ((this.memory[src]&0x80)==0x00)
@@ -808,7 +808,7 @@ var core={
               break;
 
             case 0x01: // * Rotate left
-              printf("ROL"); // N Z C
+              debug("ROL"); // N Z C
               result=this.memory[src];
               this.memory[src]=(((this.memory[src] << 1)&0xfe) + (this.flags&CFLAG));
 
@@ -821,7 +821,7 @@ var core={
               break;
 
             case 0x02: // * Logical shift right
-              printf("LSR"); // N Z C
+              debug("LSR"); // N Z C
               this.CLEARFLAG(NFLAG);
 
               // Place bottom bit in carry
@@ -837,7 +837,7 @@ var core={
               break;
 
             case 0x03: // * Rotate right
-              printf("ROR"); // N Z C
+              debug("ROR"); // N Z C
               result=this.memory[src]&0x01;
               this.memory[src]=((this.memory[src]>>1)&0x7f);
 
@@ -850,24 +850,24 @@ var core={
               break;
 
             case 0x04: // * Store X in memory
-              printf("STX");
+              debug("STX");
               this.memory[src]=this.memory[XREG];
               break;
 
             case 0x05: // * Load X with memory
-              printf("LDX"); // N Z
+              debug("LDX"); // N Z
               this.memory[XREG]=this.memory[src];
               this.update_flagsZN(this.memory[XREG]);
               break;
 
             case 0x06: // * Decrement indexed memory by 1 (DEX/DEY)
-              printf("DEC"); // N Z
+              debug("DEC"); // N Z
               this.memory[src]--;
               this.update_flagsZN(this.memory[src]);
               break;
 
             case 0x07: // * Increment memory by 1
-              printf("INC"); // N Z
+              debug("INC"); // N Z
               this.memory[src]++;
               this.update_flagsZN(this.memory[src]);
               break;
