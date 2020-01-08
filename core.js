@@ -362,7 +362,8 @@ var core={
     if (this.running==false) return;
 
     // Execute instruction
-    if ((this.ci&0x0f)==0x08) // Implied instructions (no operand)
+    if (((this.ci&0x0f)==0x08) || // Implied instructions (no operand)
+        ((this.ci>=0x80) && ((this.ci&0x0f)==0x0a)) 
     {
       switch (this.ci)
       {
@@ -413,10 +414,21 @@ var core={
           this.update_flagsZN(this.mem[YREG]);
           break;
 
+        case 0x8a: // * Transfer X to A
+          debug("TXA"); // N Z
+          this.mem[AREG]=this.mem[XREG];
+          this.update_flagsZN(this.mem[AREG]);
+          break;
+
         case 0x98: // * Transfer Y to A
           debug("TYA"); // N Z
           this.mem[AREG]=this.mem[YREG];
           this.update_flagsZN(this.mem[AREG]);
+          break;
+
+        case 0x9a: // * Transfer X to stackpointer
+          debug("TXS");
+          this.mem[SREG]=this.mem[XREG];
           break;
 
         case 0xa8: // * Transfer A to Y
@@ -425,15 +437,33 @@ var core={
           this.update_flagsZN(this.mem[YREG]);
           break;
 
+        case 0xaa: // * Transfer A to X
+          debug("TAX"); // N Z
+          this.mem[XREG]=this.mem[AREG];
+          this.update_flagsZN(this.mem[XREG]);
+          break;
+
         case 0xb8: // * Clear OVERFLOW flag
           debug("CLV");
           this.CLEARFLAG(VFLAG);
+          break;
+
+        case 0xba: // * Transfer stackpointer to X
+          debug("TSX");
+          this.mem[XREG]=this.mem[SREG];
+          this.update_flagsZN(this.mem[XREG]);
           break;
 
         case 0xc8: // * Increment Y by 1
           debug("INY"); // N Z
           this.mem[YREG]++;
           this.update_flagsZN(this.mem[YREG]);
+          break;
+
+        case 0xca: // * Decrement X by 1
+          debug("DEX"); // N Z
+          this.mem[XREG]--;
+          this.update_flagsZN(this.mem[XREG]);
           break;
 
         case 0xd8: // * Clear DECIMAL flag
@@ -447,54 +477,13 @@ var core={
           this.update_flagsZN(this.mem[XREG]);
           break;
 
+        case 0xea: // * No operation
+          debug("NOP");
+          break;
+
         case 0xf8: // * Set BCD flag
           debug("SED"); // D
           this.SETFLAG(DFLAG);
-          break;
-
-        default:
-          debug("Unknown opcode 0x"+this.ci.toString(16));
-          this.running=false;
-          return;
-          break;
-      }
-    }
-    else
-    if ((this.ci>=0x80) && ((this.ci&0x0f)==0x0a)) // Other single byte instructions
-    {
-      switch (this.ci)
-      {
-        case 0x8a: // * Transfer X to A
-          debug("TXA"); // N Z
-          this.mem[AREG]=this.mem[XREG];
-          this.update_flagsZN(this.mem[AREG]);
-          break;
-
-        case 0x9a: // * Transfer X to stackpointer
-          debug("TXS");
-          this.mem[SREG]=this.mem[XREG];
-          break;
-
-        case 0xaa: // * Transfer A to X
-          debug("TAX"); // N Z
-          this.mem[XREG]=this.mem[AREG];
-          this.update_flagsZN(this.mem[XREG]);
-          break;
-
-        case 0xba: // * Transfer stackpointer to X
-          debug("TSX");
-          this.mem[XREG]=this.mem[SREG];
-          this.update_flagsZN(this.mem[XREG]);
-          break;
-
-        case 0xca: // * Decrement X by 1
-          debug("DEX"); // N Z
-          this.mem[XREG]--;
-          this.update_flagsZN(this.mem[XREG]);
-          break;
-
-        case 0xea: // * No operation
-          debug("NOP");
           break;
 
         default:
@@ -955,16 +944,6 @@ function launchcore()
   var lp=0x2000;
 
   core.resetcore();
-
-/*
-  for (var i=0; i<0x100; i++)
-  {
-    core.mem[lp]=i;
-    core.pc=lp;
-    core.running=true;
-    core.stepcore();
-  }
-*/
 
   // Load test code
   core.mem[lp++]=0xa9; // LDA #0x16
