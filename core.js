@@ -246,7 +246,7 @@ var core={
     switch (mode)
     {
       case 0: // Accumulator
-        debug("acc");
+        debug("A");
         src=AREG;
         break;
 
@@ -258,15 +258,16 @@ var core={
 
       case 2: // Absolute, X-indexed
         debug("abs,X");
+// TODO check carry ?
         src=this.mem[this.pc++];
-        src=(this.mem[this.pc++]<<8)+src+this.mem[XREG];
+        src=((this.mem[this.pc++]<<8)+src+this.mem[XREG])&0xffff;
         break;
 
       case 3: // Absolute, Y-indexed
         debug("abs,Y");
+// TODO check carry ?
         src=this.mem[this.pc++];
-        src=(this.mem[this.pc++]<<8)+src;
-        src+=this.mem[YREG];
+        src=((this.mem[this.pc++]<<8)+src+this.mem[YREG])&0xffff;
         break;
 
       case 4: // Immediate
@@ -290,12 +291,15 @@ var core={
       case 7: // X-indexed, indirect
         debug("(zp,X)");
         src=this.mem[this.pc++];
-        src=this.mem[src+this.mem[XREG]];
+        src+=this.mem[XREG];
+
+        src=this.mem[src]|(this.mem[src+1]<<8);
         break;
 
       case 8: // Indirect, Y-indexed
         debug("(zp),Y");
         src=this.mem[this.pc++];
+
         src=(this.mem[src+1]<<8)+this.mem[src];
         src+=this.mem[YREG];
         break;
