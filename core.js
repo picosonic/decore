@@ -640,20 +640,8 @@ var core={
               break;
 
             case 0x02: // * Goto address absolute
-              debug("JMP abs 0x"+src.toString(16));
-              this.addr=src;
-              if (this.addr>=0x8000)
-              {
-                this.OSJump(this.addr);
-
-                this.pc=this.popword()+1; // The OS will RTS eventually
-              }
-              else
-                this.pc=this.addr;
-              break;
-
             case 0x03: // * Goto address indirect
-              debug("JMP ind (0x"+src.toString(16)+")");
+              debug("JMP 0x"+src.toString(16));
               this.addr=src;
               if (this.addr>=0x8000)
               {
