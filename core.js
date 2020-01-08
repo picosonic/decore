@@ -261,6 +261,9 @@ var core={
 // TODO check carry ?
         src=this.mem[this.pc++];
         src=((this.mem[this.pc++]<<8)+src+this.mem[XREG])&0xffff;
+
+        // Take account of extra clock cycle on instructions which normally use 4 cycles
+        if ((src&0xff00!=this.oldpc&0xff00) && (cycles[this.ci]||0!=4)) this.clocks--;
         break;
 
       case 3: // Absolute, Y-indexed
@@ -268,6 +271,9 @@ var core={
 // TODO check carry ?
         src=this.mem[this.pc++];
         src=((this.mem[this.pc++]<<8)+src+this.mem[YREG])&0xffff;
+
+        // Take account of extra clock cycle on instructions which normally use 4 cycles
+        if ((src&0xff00!=this.oldpc&0xff00) && (cycles[this.ci]||0!=4)) this.clocks--;
         break;
 
       case 4: // Immediate
@@ -302,6 +308,9 @@ var core={
 
         src=(this.mem[src+1]<<8)+this.mem[src];
         src+=this.mem[YREG];
+
+        // Take account of extra clock cycle on all but STA
+        if ((src&0xff00!=this.oldpc&0xff00) && (this.ci!=0x91)) this.clocks--;
         break;
 
       case 9: // Relative
