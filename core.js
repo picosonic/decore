@@ -363,7 +363,7 @@ var core={
 
     // Execute instruction
     if (((this.ci&0x0f)==0x08) || // Implied instructions (no operand)
-        ((this.ci>=0x80) && ((this.ci&0x0f)==0x0a)) 
+        ((this.ci>=0x80) && ((this.ci&0x0f)==0x0a)))
     {
       switch (this.ci)
       {
