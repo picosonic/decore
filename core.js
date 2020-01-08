@@ -33,23 +33,57 @@ function debug(message)
 // +1 if branch on same page
 // +2 if branch to different page
 var cycles=[
-// 00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f
-   7 , 6 ,   ,   ,   , 3 , 5 ,   , 3 , 2 , 2 ,   ,   , 4 , 6 ,    , // 00
-   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 10
-   6 , 6 ,   ,   , 3 , 3 , 5 ,   , 4 , 2 , 2 ,   , 4 , 4 , 6 ,    , // 20
-   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 30
-   6 , 6 ,   ,   ,   , 3 , 5 ,   , 3 , 2 , 2 ,   , 3 , 4 , 6 ,    , // 40
-   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 50
-   6 , 6 ,   ,   ,   , 3 , 5 ,   , 4 , 2 , 2 ,   , 5 , 4 , 6 ,    , // 60
-   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // 70
-     , 6 ,   ,   , 3 , 3 , 3 ,   , 2 ,   , 2 ,   , 4 , 4 , 4 ,    , // 80
-   2 , 6 ,   ,   , 4 , 4 , 4 ,   , 2 , 5 , 2 ,   ,   , 5 ,   ,    , // 90
-   2 , 6 , 2 ,   , 3 , 3 , 3 ,   , 2 , 2 , 2 ,   , 4 , 4 , 4 ,    , // a0
-   2 , 5 ,   ,   , 4 , 4 , 4 ,   , 2 , 4 , 2 ,   , 4 , 4 , 4 ,    , // b0
-   2 , 6 ,   ,   , 3 , 3 , 5 ,   , 2 , 2 , 2 ,   , 4 , 4 , 6 ,    , // c0
-   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // d0
-   2 , 6 ,   ,   , 3 , 3 , 5 ,   , 2 , 2 , 2 ,   , 4 , 4 , 6 ,    , // e0
-   2 , 5 ,   ,   ,   , 4 , 6 ,   , 2 , 4 ,   ,   ,   , 4 , 7 ,    , // f0
+// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f,
+   7, 6,  ,  ,  , 3, 5,  , 3, 2, 2,  ,  , 4, 6,  , // 00
+   2, 5,  ,  ,  , 4, 6,  , 2, 4,  ,  ,  , 4, 7,  , // 10
+   6, 6,  ,  , 3, 3, 5,  , 4, 2, 2,  , 4, 4, 6,  , // 20
+   2, 5,  ,  ,  , 4, 6,  , 2, 4,  ,  ,  , 4, 7,  , // 30
+   6, 6,  ,  ,  , 3, 5,  , 3, 2, 2,  , 3, 4, 6,  , // 40
+   2, 5,  ,  ,  , 4, 6,  , 2, 4,  ,  ,  , 4, 7,  , // 50
+   6, 6,  ,  ,  , 3, 5,  , 4, 2, 2,  , 5, 4, 6,  , // 60
+   2, 5,  ,  ,  , 4, 6,  , 2, 4,  ,  ,  , 4, 7,  , // 70
+    , 6,  ,  , 3, 3, 3,  , 2,  , 2,  , 4, 4, 4,  , // 80
+   2, 6,  ,  , 4, 4, 4,  , 2, 5, 2,  ,  , 5,  ,  , // 90
+   2, 6, 2,  , 3, 3, 3,  , 2, 2, 2,  , 4, 4, 4,  , // a0
+   2, 5,  ,  , 4, 4, 4,  , 2, 4, 2,  , 4, 4, 4,  , // b0
+   2, 6,  ,  , 3, 3, 5,  , 2, 2, 2,  , 4, 4, 6,  , // c0
+   2, 5,  ,  ,  , 4, 6,  , 2, 4,  ,  ,  , 4, 7,  , // d0
+   2, 6,  ,  , 3, 3, 5,  , 2, 2, 2,  , 4, 4, 6,  , // e0
+   2, 5,  ,  ,  , 4, 6,  , 2, 4,  ,  ,  , 4, 7,  , // f0
+];
+
+// Opcode address modes
+// 0 Accumulator
+// 1 Absolute
+// 2 Absolute, X-indexed
+// 3 Absolute, Y-indexed
+// 4 Immediate
+// 5 Implied
+// 6 Indirect
+// 7 X-indexed, indirect
+// 8 Indirect, Y-indexed
+// 9 Relative
+// 10 Zeropage
+// 11 Zeropage, X-indexed
+// 12 Zeropage, Y-indexed
+var addrmodes=[
+// 00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f,
+   5 , 7 ,   ,   ,   , 10, 10,   , 5 , 4 , 0 ,   ,   , 1 , 1 ,   , // 00
+   9 , 8 ,   ,   ,   , 11, 11,   , 5 , 3 ,   ,   ,   , 2 , 2 ,   , // 10
+   1 , 7 ,   ,   , 10, 10, 10,   , 5 , 4 , 0 ,   , 1 , 1 , 1 ,   , // 20
+   9 , 8 ,   ,   ,   , 11, 11,   , 5 , 3 ,   ,   ,   , 2 , 2 ,   , // 30
+   5 , 7 ,   ,   ,   , 10, 10,   , 5 , 4 , 0 ,   , 1 , 1 , 1 ,   , // 40
+   9 , 8 ,   ,   ,   , 11, 11,   , 5 , 3 ,   ,   ,   , 2 , 2 ,   , // 50
+   5 , 7 ,   ,   ,   , 10, 10,   , 5 , 4 , 0 ,   , 6 , 1 , 1 ,   , // 60
+   9 , 8 ,   ,   ,   , 11, 11,   , 5 , 3 ,   ,   ,   , 2 , 2 ,   , // 70
+     , 7 ,   ,   , 10, 10, 10,   , 5 ,   , 5 ,   , 1 , 1 , 1 ,   , // 80
+   9 , 8 ,   ,   , 11, 11, 12,   , 5 , 3 , 5 ,   ,   , 2 ,   ,   , // 90
+   4 , 7 , 4 ,   , 10, 10, 10,   , 5 , 4 , 5 ,   , 1 , 1 , 1 ,   , // a0
+   9 , 8 ,   ,   , 11, 11, 12,   , 5 , 3 , 5 ,   , 2 , 2 , 3 ,   , // b0
+   4 , 7 ,   ,   , 10, 10, 10,   , 5 , 4 , 5 ,   , 1 , 1 , 1 ,   , // c0
+   9 , 8 ,   ,   ,   , 11, 11,   , 5 , 3 ,   ,   ,   , 2 , 2 ,   , // d0
+   4 , 7 ,   ,   , 10, 10, 10,   , 5 , 4 , 5 ,   , 1 , 1 , 1 ,   , // e0
+   9 , 8 ,   ,   ,   , 11, 11,   , 5 , 3 ,   ,   ,   , 2 , 2 ,   , // f0
 ];
 
 var core={
@@ -201,9 +235,105 @@ var core={
     this.flags=IFLAG;
   },
 
+  // Determine source address for opcode
+  sourceaddr:function()
+  {
+    var mode=addrmodes[this.ci];
+    var src=0;
+
+    if (mode==undefined) mode=-1;
+
+    switch (mode)
+    {
+      case 0: // Accumulator
+        debug("acc");
+        src=AREG;
+        break;
+
+      case 1: // Absolute
+        debug("abs");
+        src=this.mem[this.pc++];
+        src=(this.mem[this.pc++]<<8)+src;
+        break;
+
+      case 2: // Absolute, X-indexed
+        debug("abs,X");
+        src=this.mem[this.pc++];
+        src=(this.mem[this.pc++]<<8)+src+this.mem[XREG];
+        break;
+
+      case 3: // Absolute, Y-indexed
+        debug("abs,Y");
+        src=this.mem[this.pc++];
+        src=(this.mem[this.pc++]<<8)+src;
+        src+=this.mem[YREG];
+        break;
+
+      case 4: // Immediate
+        debug("#imm");
+        src=this.pc++;
+        break;
+
+      case 5: // Implied
+        debug("imp");
+        // Used for instructions with no operands
+        break;
+
+      case 6: // Indirect
+        debug("(ind)");
+        src=this.mem[this.pc++];
+        src=(this.mem[this.pc++]<<8)+src;
+
+        src=this.mem[src]|(this.mem[src+1]<<8);
+        break;
+
+      case 7: // X-indexed, indirect
+        debug("(zp,X)");
+        src=this.mem[this.pc++];
+        src=this.mem[src+this.mem[XREG]];
+        break;
+
+      case 8: // Indirect, Y-indexed
+        debug("(zp),Y");
+        src=this.mem[this.pc++];
+        src=(this.mem[src+1]<<8)+this.mem[src];
+        src+=this.mem[YREG];
+        break;
+
+      case 9: // Relative
+        debug("rel");
+        // Used for branches
+        break;
+
+      case 10: // Zeropage
+        debug("zp");
+        src=this.mem[this.pc++];
+        break;
+
+      case 11: // Zeropage, X-indexed
+        debug("zp,X");
+        src=this.mem[this.pc++]+this.mem[XREG];
+        break;
+
+      case 12: // Zeropage, Y-indexed
+        debug("zp,Y");
+        src=this.mem[this.pc++]+this.mem[YREG];
+        break;
+
+      default:
+        debug("Invalid addressing mode "+mode);
+        this.running=false;
+        break;
+    }
+
+    return src;
+  },
+
   // Step a single instruction
   stepcore:function()
   {
+    var src;
+
     // Do nothing if core not running
     if (this.running==false)
       return;
@@ -225,8 +355,14 @@ var core={
     this.bbb=(this.ci&BBB)>>2;
     this.cc=(this.ci&CC);
 
+    debug("*** 0x"+this.ci.toString(16)+" aaa="+this.aaa+" bbb="+this.bbb+" cc="+this.cc+" ***");
+
+    // Process addressing mode
+    src=this.sourceaddr();
+    if (this.running==false) return;
+
     // Execute instruction
-    if ((this.ci&0x0f)==0x08) // Single byte instructions
+    if ((this.ci&0x0f)==0x08) // Implied instructions (no operand)
     {
       switch (this.ci)
       {
@@ -371,14 +507,15 @@ var core={
     else
     if ((this.ci&0x1f)==0x10) // Branch instructions
     {
+      var debugstr="";
       this.addr=this.mem[this.pc++];
       if (this.addr>=0x80) this.addr-=0x100;
 
-      debug("if ");
+      debugstr+="if ";
       switch ((this.ci&0xc0)>>6)
       {
         case 0x00: // * Branch on NEGATIVE (BMI/BPL)
-          debug("NEG");
+          debugstr+="NEG";
           if ((this.flags & NFLAG)==((this.ci&0x20)<<2))
           {
             this.clocks--;
@@ -388,7 +525,7 @@ var core={
           break;
 
         case 0x01: // * Branch on OVERFLOW (BVC/BVS)
-          debug("OVR");
+          debugstr+="OVR";
           if ((this.flags & VFLAG)==((this.ci&0x20)<<1))
           {
             this.clocks--;
@@ -398,7 +535,7 @@ var core={
           break;
 
         case 0x02: // * Branch on CARRY (BCC/BCS)
-          debug("CRY");
+          debugstr+="CRY";
           if ((this.flags & CFLAG)==((this.ci&0x20)>>5))
           {
             this.clocks--;
@@ -408,7 +545,7 @@ var core={
           break;
 
         case 0x03: // * Branch on ZERO (BEQ/BNE)
-          debug("ZER");
+          debugstr+="ZER";
           if ((this.flags & ZFLAG)==((this.ci&0x20)>>4))
           {
             this.clocks--;
@@ -418,12 +555,12 @@ var core={
           break;
 
         default:
-          debug("Unknown branch 0x"+this.ci.toString(16));
+          debugstr+="Unknown branch 0x"+this.ci.toString(16);
           this.running=false;
           return;
           break;
       }
-      debug("="+((this.ci&0x20)>>5)+" then branch "+this.addr);
+      debug(debugstr+"="+((this.ci&0x20)>>5)+" then branch "+this.addr);
     }
     else
     if (this.ci==0x00) // * Simulate interrupt request IRQ
@@ -444,10 +581,8 @@ var core={
     else
     if (this.ci==0x20) // * Jump to subroutine
     {
-      this.addr=this.mem[this.pc++];
-      this.addr=(this.mem[this.pc++]<<8)+this.addr;
-
-      debug("JSR abs 0x"+this.addr.toString(16));
+      debug("JSR abs 0x"+src.toString(16));
+      this.addr=src;
       if (this.addr>=0x8000)
       {
         debug(" ");
@@ -486,45 +621,12 @@ var core={
     }
     else
     {
-      var src;
       var result;
 
       // Process instructions from standard opcode tables
       switch (this.cc)
       {
         case 0x00:
-          // Process addressing mode
-          switch (this.bbb)
-          {
-            case 0x00: // #immediate
-              src=this.pc++;
-              break;
-
-            case 0x01: // zero page
-              src=this.mem[this.pc++];
-              break;
-
-            case 0x03: // absolute
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src;
-              break;
-
-            case 0x05: // zero page,X
-              src=this.mem[this.pc++]+this.mem[XREG];
-              break;
-
-            case 0x07: // absolute,X
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src+this.mem[XREG];
-              break;
-
-            default:
-              debug("Unknown A addressing mode 0x"+this.bbb.toString(16));
-              this.running=false;
-              return;
-              break;
-          }
-
           // Process instruction
           switch (this.aaa)
           {
@@ -536,7 +638,8 @@ var core={
               break;
 
             case 0x02: // * Goto address absolute
-              debug("JMP abs 0x"+this.addr.toString(16));
+              debug("JMP abs 0x"+src.toString(16));
+              this.addr=src;
               if (this.addr>=0x8000)
               {
                 this.OSJump(this.addr);
@@ -548,8 +651,8 @@ var core={
               break;
 
             case 0x03: // * Goto address indirect
-              debug("JMP ind (0x"+this.addr.toString(16)+")");
-              this.addr=this.mem[this.addr]|(this.mem[this.addr+1]<<8);
+              debug("JMP ind (0x"+src.toString(16)+")");
+              this.addr=src;
               if (this.addr>=0x8000)
               {
                 this.OSJump(this.addr);
@@ -594,56 +697,6 @@ var core={
           break;
 
         case 0x01: // Most common instructions
-          // Process addressing mode
-          switch (this.bbb)
-          {
-            case 0: // (zero page,X) = indexed indirect
-              src=this.mem[this.pc++];
-              src=this.mem[src+this.mem[XREG]];
-              break;
-
-            case 1: // zero page
-              src=this.mem[this.pc++];
-              break;
-
-            case 2: // #immediate
-              src=this.pc++;
-              break;
-
-            case 3: // absolute
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src;
-              break;
-
-            case 4: // (zero page),Y = indirect indexed
-              src=this.mem[this.pc++];
-              src=(this.mem[src+1]<<8)+this.mem[src];
-              src+=this.mem[YREG];
-              break;
-
-            case 5: // zero page,X
-              src=this.mem[this.pc++]+this.mem[XREG];
-              break;
-
-            case 6: // absolute,Y
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src;
-              src+=this.mem[YREG];
-              break;
-
-            case 7: // absolute,X
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src;
-              src+=this.mem[XREG];
-              break;
-
-            default:
-              debug("Unknown B addressing mode 0x"+this.bbb.toString(16));
-              this.running=false;
-              return;
-              break;
-          }
-
           // Process instruction
           switch (this.aaa)
           {
@@ -771,43 +824,6 @@ var core={
           break;
 
         case 0x02:
-          // Process addressing mode
-          switch (this.bbb)
-          {
-            case 0: // #immediate
-              src=this.pc++;
-              break;
-
-            case 1: // zero page
-              src=this.mem[this.pc++];
-              break;
-
-            case 2: // accumulator
-              src=AREG;
-              break;
-
-            case 3: // absolute
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src;
-              break;
-
-            case 5: // zero page,X
-              src=this.mem[this.pc++]+this.mem[XREG];
-              break;
-
-            case 7: // absolute,X
-              src=this.mem[this.pc++];
-              src=(this.mem[this.pc++]<<8)+src;
-              src+=this.mem[XREG];
-              break;
-
-            default:
-              debug("Unknown C addressing mode 0x"+this.bbb.toString(16));
-              this.running=false;
-              return;
-              break;
-          }
-
           // Process instruction
           switch (this.aaa)
           {
@@ -939,6 +955,16 @@ function launchcore()
   var lp=0x2000;
 
   core.resetcore();
+
+/*
+  for (var i=0; i<0x100; i++)
+  {
+    core.mem[lp]=i;
+    core.pc=lp;
+    core.running=true;
+    core.stepcore();
+  }
+*/
 
   // Load test code
   core.mem[lp++]=0xa9; // LDA #0x16
