@@ -289,7 +289,10 @@ var core={
         src=this.mem[this.pc++];
         src=(this.mem[this.pc++]<<8)+src;
 
-        src=this.mem[src]|(this.mem[src+1]<<8);
+        if ((this.ci==0x6c) && ((src&0xff)==0xff)) // JMP (ind) bug
+          src=this.mem[src]|(this.mem[src&0xff00]<<8);
+        else
+          src=this.mem[src]|(this.mem[src+1]<<8);
         break;
 
       case 7: // X-indexed, indirect
