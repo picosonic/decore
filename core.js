@@ -605,7 +605,7 @@ var core={
     if (this.ci==0x60) // * Return from subroutine
     {
       debug("RTS");
-      this.pc=this.popword()+1;
+      this.pc=(this.popword()+1)&0xffff;
     }
     else
     if ((this.ci==0x80) || // * Uncaught illegal instructions
@@ -645,7 +645,7 @@ var core={
               {
                 this.OSJump(this.addr);
 
-                this.pc=this.popword()+1; // The OS will RTS eventually
+                this.pc=(this.popword()+1)&0xffff; // The OS will RTS eventually
               }
               else
                 this.pc=this.addr;
