@@ -258,7 +258,6 @@ var core={
 
       case 2: // Absolute, X-indexed
         debug("abs,X");
-// TODO check carry ?
         src=this.mem[this.pc++];
         src=((this.mem[this.pc++]<<8)+src+this.mem[XREG])&0xffff;
 
@@ -268,7 +267,6 @@ var core={
 
       case 3: // Absolute, Y-indexed
         debug("abs,Y");
-// TODO check carry ?
         src=this.mem[this.pc++];
         src=((this.mem[this.pc++]<<8)+src+this.mem[YREG])&0xffff;
 
