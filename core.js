@@ -941,80 +941,32 @@ function rafcallback(timestamp)
     window.requestAnimationFrame(rafcallback);
 }
 
+function loadfile(filename)
+{
+  var execaddress=0;
+
+  for (var i=0; i<files.length; i++)
+  {
+    if (files[i].name==filename)
+    {
+      for (var j=0; j<files[i].data.length; j++)
+        core.mem[files[i].loadaddress+j]=files[i].data[j];
+
+      execaddress=files[i].execaddress;
+      break;
+    }
+  }
+
+  return execaddress;
+}
+
 function launchcore()
 {
-  var lp=0x2000;
-
   core.resetcore();
 
   // Load test code
-  core.mem[lp++]=0xa9; // LDA #0x16
-  core.mem[lp++]=0x16; //
+  core.pc=loadfile("Main");
 
-  core.mem[lp++]=0x20; // JSR 0xFFEE
-  core.mem[lp++]=0xee; //
-  core.mem[lp++]=0xff; //
-
-  core.mem[lp++]=0xa9; // LDA #0x07
-  core.mem[lp++]=0x07; //
-
-  core.mem[lp++]=0x20; // JSR 0xFFEE
-  core.mem[lp++]=0xee; //
-  core.mem[lp++]=0xff; //
-
-  core.mem[lp++]=0xa9; // LDA #0x1F
-  core.mem[lp++]=0x1f; //
-
-  core.mem[lp++]=0x85; // STA 0x70
-  core.mem[lp++]=0x70; //
-
-  core.mem[lp++]=0xa9; // LDA #0x20
-  core.mem[lp++]=0x20; //
-
-  core.mem[lp++]=0x85; // STA 0x71
-  core.mem[lp++]=0x71; //
-
-  core.mem[lp++]=0xa0; // LDY 0x00
-  core.mem[lp++]=0x00; //
-
-  core.mem[lp++]=0xb1; // LDA (0x70),Y
-  core.mem[lp++]=0x70; //
-
-  core.mem[lp++]=0xf0; // BEQ 0x06
-  core.mem[lp++]=0x06; //
-
-  core.mem[lp++]=0x20; // JSR 0xFFE3
-  core.mem[lp++]=0xe3; //
-  core.mem[lp++]=0xff; //
-
-  core.mem[lp++]=0xc8; // INY
-
-  core.mem[lp++]=0xd0; // BNE 0xF6 (-10)
-  core.mem[lp++]=0xf6; //
-
-  core.mem[lp++]=0x60; // RTS
-
-  core.mem[lp++]=0x48; // H
-  core.mem[lp++]=0x65; // e
-  core.mem[lp++]=0x6c; // l
-  core.mem[lp++]=0x6c; // l
-  core.mem[lp++]=0x6f; // o
-  core.mem[lp++]=0x20; // " "
-  core.mem[lp++]=0x36; // 6
-  core.mem[lp++]=0x35; // 5
-  core.mem[lp++]=0x30; // 0
-  core.mem[lp++]=0x32; // 2
-  core.mem[lp++]=0x20; // " "
-  core.mem[lp++]=0x77; // w
-  core.mem[lp++]=0x6f; // o
-  core.mem[lp++]=0x72; // r
-  core.mem[lp++]=0x6c; // l
-  core.mem[lp++]=0x64; // d
-  core.mem[lp++]=0x21; // !
-  core.mem[lp++]=0x0d; // CR
-  core.mem[lp++]=0x00; // NULL
-
-  core.pc=0x2000;
   core.running=true;
   window.requestAnimationFrame(rafcallback);
 }
