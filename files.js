@@ -1,7 +1,7 @@
 var files=[
 {
   "name":"Main",
-  "loadadress":0x2000,
+  "loadaddress":0x2000,
   "execaddress":0x2000,
   "data":
     [
