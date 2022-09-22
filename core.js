@@ -199,10 +199,13 @@ var core={
     switch (addr)
     {
       case 0xffe3: // OSASCI
+        if ((this.mem[AREG]>=0x20) && (this.mem[AREG]<=0x7e))
+        {
+          document.write(String.fromCharCode(this.mem[AREG]));
+        }
+        else
         if (this.mem[AREG]==0x0d)
           document.write("<br/>");
-        else
-          document.write(String.fromCharCode(this.mem[AREG]));
         break;
 
       case 0xffe7: // OSNEWL
@@ -210,7 +213,13 @@ var core={
         break;
 
       case 0xffee: // OSWRCH
-        document.write(String.fromCharCode(this.mem[AREG]));
+        if ((this.mem[AREG]>=0x20) && (this.mem[AREG]<=0x7e))
+        {
+          document.write(String.fromCharCode(this.mem[AREG]));
+        }
+        else
+        if (this.mem[AREG]==0x0d)
+          document.write("<br/>");
         break;
     }
   },
@@ -971,4 +980,5 @@ function launchcore()
   window.requestAnimationFrame(rafcallback);
 }
 
-launchcore();
+// Run the code once page has loaded
+window.onload=function() { launchcore(); };
